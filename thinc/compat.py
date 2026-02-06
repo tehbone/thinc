@@ -32,10 +32,12 @@ except (ImportError, AttributeError):
 
 
 def _import_extra_gpu_backends():
+    global has_nnpa
     try:
         from thinc_nnpa_ops import NnpaOps
+        has_nnpa = True
     except ImportError:
-        pass
+        has_nnpa = False
 
 
 try:  # pragma: no cover
@@ -47,7 +49,7 @@ try:  # pragma: no cover
     has_torch_cuda_gpu = torch.cuda.device_count() != 0
     has_torch_mps = hasattr(torch.backends, "mps") and torch.backends.mps.is_built()
     has_torch_mps_gpu = has_torch_mps and torch.backends.mps.is_available()
-    has_torch_nnpa_gpu = hasattr(torch, "nnpa")
+    has_torch_nnpa_gpu = hasattr(torch, "nnpa") and has_nnpa
     has_torch_gpu = has_torch_cuda_gpu
     torch_version = Version(str(torch.__version__))
     has_torch_amp = (

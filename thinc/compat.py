@@ -31,14 +31,23 @@ except (ImportError, AttributeError):
     has_cupy_gpu = False
 
 
+def _import_extra_gpu_backends():
+    try:
+        from thinc_nnpa_ops import NnpaOps
+    except ImportError:
+        pass
+
+
 try:  # pragma: no cover
     import torch
     import torch.utils.dlpack
 
+    _import_extra_gpu_backends()
     has_torch = True
     has_torch_cuda_gpu = torch.cuda.device_count() != 0
     has_torch_mps = hasattr(torch.backends, "mps") and torch.backends.mps.is_built()
     has_torch_mps_gpu = has_torch_mps and torch.backends.mps.is_available()
+    has_torch_nnpa_gpu = hasattr(torch, "nnpa")
     has_torch_gpu = has_torch_cuda_gpu
     torch_version = Version(str(torch.__version__))
     has_torch_amp = (
@@ -51,6 +60,7 @@ except ImportError:  # pragma: no cover
     has_torch_cuda_gpu = False
     has_torch_gpu = False
     has_torch_mps = False
+    has_torch_nnpa_gpu = False
     has_torch_mps_gpu = False
     has_torch_amp = False
     torch_version = Version("0.0.0")
@@ -110,7 +120,7 @@ except ImportError:
     has_os_signpost = False
 
 
-has_gpu = has_cupy_gpu or has_torch_mps_gpu
+has_gpu = has_cupy_gpu or has_torch_mps_gpu or has_torch_nnpa_gpu
 
 __all__ = [
     "cupy",

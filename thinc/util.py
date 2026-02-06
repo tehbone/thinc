@@ -38,6 +38,7 @@ from .compat import (
     has_torch,
     has_torch_cuda_gpu,
     has_torch_mps,
+    has_torch_nnpa_gpu,
 )
 from .compat import mxnet as mx
 from .compat import tensorflow as tf
@@ -68,6 +69,10 @@ def get_torch_default_device() -> "torch.device":
         return torch.device(f"cuda:{device_id}")
     elif isinstance(ops, MPSOps):
         return torch.device("mps")
+    elif has_torch_nnpa_gpu:
+        from thinc_nnpa_ops import NnpaOps
+        if isinstance(ops, NnpaOps):
+            return torch.device("nnpa")
 
     return torch.device("cpu")
 
@@ -221,7 +226,7 @@ def require_gpu(gpu_id: int = 0) -> bool:  # pragma: no cover
         if has_torch:
             raise ValueError("Cannot use GPU, installed PyTorch does not support MPS")
         raise ValueError("Cannot use GPU, PyTorch is not installed")
-    elif platform.system() != "Darwin" and not has_cupy:
+    elif platform.system() != "Darwin" and not has_cupy and not has_torch_nnpa_gpu:
         raise ValueError("Cannot use GPU, CuPy is not installed")
     elif not has_gpu:
         raise ValueError("No GPU devices detected")
@@ -229,6 +234,9 @@ def require_gpu(gpu_id: int = 0) -> bool:  # pragma: no cover
     if has_cupy_gpu:
         set_current_ops(CupyOps())
         set_active_gpu(gpu_id)
+    elif has_torch_nnpa_gpu:
+        from thinc_nnpa_ops import NnpaOps
+        set_current_ops(NnpaOps())
     else:
         set_current_ops(MPSOps())
 

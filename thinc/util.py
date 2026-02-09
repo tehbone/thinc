@@ -92,7 +92,7 @@ def get_array_module(arr):  # pragma: no cover
 
 
 def gpu_is_available():
-    return has_gpu
+    return has_gpu or has_torch_nnpa_gpu
 
 
 def fix_random_seed(seed: int = 0) -> None:  # pragma: no cover
@@ -216,6 +216,13 @@ def prefer_gpu(gpu_id: int = 0) -> bool:  # pragma: no cover
     """Use GPU if it's available. Returns True if so, False otherwise."""
     if has_gpu:
         require_gpu(gpu_id=gpu_id)
+    elif has_torch_nnpa_gpu:
+        try:
+            from thinc_nnpa_ops import NnpaOps
+            require_gpu()
+            return True
+        except ImportError:
+            pass
     return has_gpu
 
 
@@ -228,7 +235,7 @@ def require_gpu(gpu_id: int = 0) -> bool:  # pragma: no cover
         raise ValueError("Cannot use GPU, PyTorch is not installed")
     elif platform.system() != "Darwin" and not has_cupy and not has_torch_nnpa_gpu:
         raise ValueError("Cannot use GPU, CuPy is not installed")
-    elif not has_gpu:
+    elif not has_gpu and not has_torch_nnpa_gpu:
         raise ValueError("No GPU devices detected")
 
     if has_cupy_gpu:

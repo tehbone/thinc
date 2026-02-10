@@ -258,6 +258,6 @@ def default_deserialize_torch_model(
     """
     filelike = BytesIO(state_bytes)
     filelike.seek(0)
-    model.load_state_dict(torch.load(filelike, map_location=device))
+    model.load_state_dict(torch.load(filelike))
     model.to(device)
     return model
